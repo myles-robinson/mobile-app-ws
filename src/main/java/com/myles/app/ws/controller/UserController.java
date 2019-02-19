@@ -1,0 +1,111 @@
+package com.myles.app.ws.controller;
+
+import com.myles.app.ws.constants.RequestMappings;
+import com.myles.app.ws.dto.UserDTO;
+import com.myles.app.ws.exceptions.FirstNameException;
+import com.myles.app.ws.model.request.UserDetailsRequestModel;
+import com.myles.app.ws.model.response.OperationStatusModel;
+import com.myles.app.ws.model.response.RequestOperationName;
+import com.myles.app.ws.model.response.RequestOperationStatus;
+import com.myles.app.ws.model.response.UserRest;
+import com.myles.app.ws.service.UserService;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@RestController
+@RequestMapping(RequestMappings.USERS) // http://localhost:8080/mobile-app-ws/users
+public class UserController {
+
+    @Autowired
+    UserService userService;
+
+    // can consume and produce in json and xml
+    @GetMapping(path = "/{id}", produces = {MediaType.APPLICATION_JSON_VALUE
+            , MediaType.APPLICATION_XML_VALUE})
+    public UserRest getUser(@PathVariable String id) {
+
+        UserRest returnValue = new UserRest();
+
+        UserDTO userDTO = userService.getUserByUserId(id);
+        BeanUtils.copyProperties(userDTO, returnValue);
+
+        return returnValue;
+    }
+
+    @GetMapping(produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+    public List<UserRest> getUsers(@RequestParam(value = "page", defaultValue = "0") int page,
+                                   @RequestParam(value = "limit", defaultValue = "2") int limit) {
+
+        List<UserRest> returnValue = new ArrayList<>();
+
+        List<UserDTO> users = userService.getUsers(page, limit);
+
+        for (UserDTO user : users) {
+            UserRest userModel = new UserRest();
+            BeanUtils.copyProperties(user, userModel);
+            returnValue.add(userModel);
+        }
+
+        return returnValue;
+    }
+
+    // can consume and produce in json and xml
+    @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE},
+            produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+    public UserRest createUser(@RequestBody UserDetailsRequestModel userDetails) throws Exception{
+
+        UserRest returnValue = new UserRest();
+
+        if (userDetails.getFirstName().isEmpty()) {
+            throw new FirstNameException("You are missing the first name");
+        }
+
+        // create new object to store data
+        UserDTO userDTO = new UserDTO();
+        // copy information from input to empty dto
+        BeanUtils.copyProperties(userDetails, userDTO);
+        // do logic to create user
+        UserDTO createdUser = userService.createUser(userDTO);
+        // copy information from created user to return value
+        BeanUtils.copyProperties(createdUser, returnValue);
+
+        return returnValue;
+    }
+
+    @PutMapping(path = "/{id}", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE},
+            produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+    public UserRest updateUser(@PathVariable String id, @RequestBody UserDetailsRequestModel userDetails) {
+
+        UserRest returnValue = new UserRest();
+
+        // create new object to store data
+        UserDTO userDTO = new UserDTO();
+        // copy information from input to empty dto
+        BeanUtils.copyProperties(userDetails, userDTO);
+        // do logic to create user
+        UserDTO createdUser = userService.updateUser(id, userDTO);
+        // copy information from created user to return value
+        BeanUtils.copyProperties(createdUser, returnValue);
+
+        return returnValue;
+    }
+
+    @DeleteMapping(path = "/{id}", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+    public OperationStatusModel deleteUser(@PathVariable String id) {
+
+        OperationStatusModel returnValue = new OperationStatusModel();
+        returnValue.setOperationName(RequestOperationName.DELETE.toString());
+
+        userService.deleteUser(id);
+
+        returnValue.setOperationResult(RequestOperationStatus.SUCCESS.toString());
+
+        return returnValue;
+    }
+
+}
