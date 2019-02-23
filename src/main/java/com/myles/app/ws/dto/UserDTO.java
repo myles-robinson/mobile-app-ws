@@ -3,6 +3,7 @@ package com.myles.app.ws.dto;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Data
 public class UserDTO implements Serializable {
@@ -17,4 +18,5 @@ public class UserDTO implements Serializable {
     private String encryptedPassword;
     private String emailVerificationToken;
     private Boolean emailVerificationStatus = false;
+    private List<AddressDTO> addresses;
 }

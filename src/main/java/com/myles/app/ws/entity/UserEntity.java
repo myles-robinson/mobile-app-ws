@@ -5,11 +5,9 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.io.Serializable;
+import java.util.List;
 
 // Used to persist data to db table "users"
 @Data
@@ -45,4 +43,8 @@ public class UserEntity implements Serializable {
 
     @Column(nullable = false)
     private boolean emailVerificationStatus = false;
+
+    @OneToMany(mappedBy = "userDetails",
+            cascade = CascadeType.ALL) // This class owns userDetails, cascade makes action propagate based on persistence
+    private List<AddressEntity> addresses;
 }

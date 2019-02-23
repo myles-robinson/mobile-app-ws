@@ -9,6 +9,7 @@ import com.myles.app.ws.model.response.RequestOperationName;
 import com.myles.app.ws.model.response.RequestOperationStatus;
 import com.myles.app.ws.model.response.UserRest;
 import com.myles.app.ws.service.UserService;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -59,20 +60,20 @@ public class UserController {
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public UserRest createUser(@RequestBody UserDetailsRequestModel userDetails) throws Exception{
 
-        UserRest returnValue = new UserRest();
+        UserRest returnValue;
 
         if (userDetails.getFirstName().isEmpty()) {
             throw new FirstNameException("You are missing the first name");
         }
 
-        // create new object to store data
-        UserDTO userDTO = new UserDTO();
         // copy information from input to empty dto
-        BeanUtils.copyProperties(userDetails, userDTO);
+        // ModelMapper creates deep copy
+        ModelMapper mapper = new ModelMapper();
+        UserDTO userDTO = mapper.map(userDetails, UserDTO.class);
         // do logic to create user
         UserDTO createdUser = userService.createUser(userDTO);
         // copy information from created user to return value
-        BeanUtils.copyProperties(createdUser, returnValue);
+        returnValue = mapper.map(createdUser, UserRest.class);
 
         return returnValue;
     }

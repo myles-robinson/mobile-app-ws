@@ -1,5 +1,6 @@
 package com.myles.app.ws.service.impl;
 
+import com.myles.app.ws.dto.AddressDTO;
 import com.myles.app.ws.dto.UserDTO;
 import com.myles.app.ws.entity.UserEntity;
 import com.myles.app.ws.exceptions.UserServiceException;
@@ -7,6 +8,7 @@ import com.myles.app.ws.model.response.ErrorMessages;
 import com.myles.app.ws.repository.UserRepository;
 import com.myles.app.ws.service.UserService;
 import com.myles.app.ws.utils.UserIdUtils;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -89,17 +91,26 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("User with email " + user.getEmail().toUpperCase() + " already exists");
         }
 
-        UserEntity userEntity = new UserEntity();
-        BeanUtils.copyProperties(user, userEntity);
+        for (int i = 0; i < user.getAddresses().size(); i++) {
+            AddressDTO address = user.getAddresses().get(i);
+            address.setAddressId(utils.generateAddressId(30));
+            // set address back to user dto
+            user.getAddresses().set(i, address);
+        }
+
+        UserEntity userEntity;
+//        BeanUtils.copyProperties(user, userEntity);
+        ModelMapper mapper = new ModelMapper();
+        userEntity = mapper.map(user, UserEntity.class);
 
         userEntity.setUserId(utils.generateUserId(30));
         userEntity.setEncryptedPassword(bCryptPasswordEncoder.encode(user.getPassword()));
-
         UserEntity storedUserDetails = userRepo.save(userEntity);
 
-        UserDTO returnValue = new UserDTO();
+        UserDTO returnValue;
 
-        BeanUtils.copyProperties(storedUserDetails, returnValue);
+//        BeanUtils.copyProperties(storedUserDetails, returnValue);
+        returnValue = mapper.map(storedUserDetails, UserDTO.class);
 
         return returnValue;
     }
