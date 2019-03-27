@@ -44,7 +44,7 @@ public class UserEntity implements Serializable {
     @Column(nullable = false)
     private boolean emailVerificationStatus = false;
 
-    @OneToMany(mappedBy = "userDetails",
+    @OneToMany(mappedBy = "userDetails", // user owns the address
             cascade = CascadeType.ALL) // This class owns userDetails, cascade makes action propagate based on persistence
     private List<AddressEntity> addresses;
 }

@@ -1,20 +1,21 @@
 package com.myles.app.ws.controller;
 
 import com.myles.app.ws.constants.RequestMappings;
+import com.myles.app.ws.dto.AddressDTO;
 import com.myles.app.ws.dto.UserDTO;
 import com.myles.app.ws.exceptions.FirstNameException;
 import com.myles.app.ws.model.request.UserDetailsRequestModel;
-import com.myles.app.ws.model.response.OperationStatusModel;
-import com.myles.app.ws.model.response.RequestOperationName;
-import com.myles.app.ws.model.response.RequestOperationStatus;
-import com.myles.app.ws.model.response.UserRest;
+import com.myles.app.ws.model.response.*;
+import com.myles.app.ws.service.AddressService;
 import com.myles.app.ws.service.UserService;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,6 +25,9 @@ public class UserController {
 
     @Autowired
     UserService userService;
+
+    @Autowired
+    AddressService addressService;
 
     // can consume and produce in json and xml
     @GetMapping(path = "/{id}", produces = {MediaType.APPLICATION_JSON_VALUE
@@ -107,6 +111,37 @@ public class UserController {
         returnValue.setOperationResult(RequestOperationStatus.SUCCESS.toString());
 
         return returnValue;
+    }
+
+    // http://localhost:8080/mobile-app-ws/users/*userId*/addresses
+    @GetMapping(path = "/{id}/addresses", produces = {MediaType.APPLICATION_JSON_VALUE
+            , MediaType.APPLICATION_XML_VALUE})
+    public List<AddressRest> getUserAddresses(@PathVariable String id) {
+
+        List<AddressRest> returnValue = new ArrayList<>();
+        ModelMapper mapper = new ModelMapper();
+
+        List<AddressDTO> addressesDTO = addressService.getAddresses(id);
+
+        if (addressesDTO != null && !addressesDTO.isEmpty()) {
+            // Used to copy list
+            Type listType = new TypeToken<List<AddressRest>>(){}.getType();
+            returnValue = mapper.map(addressesDTO, listType);
+
+        }
+
+        return returnValue;
+    }
+
+    @GetMapping(path = "/{userId}/addresses/{addressId}", produces = {MediaType.APPLICATION_JSON_VALUE
+            , MediaType.APPLICATION_XML_VALUE})
+    public AddressRest getUserAddress(@PathVariable String addressId) {
+
+        ModelMapper mapper = new ModelMapper();
+
+        AddressDTO addressesDTO = addressService.getAddress(addressId);
+
+        return mapper.map(addressesDTO, AddressRest.class);
     }
 
 }

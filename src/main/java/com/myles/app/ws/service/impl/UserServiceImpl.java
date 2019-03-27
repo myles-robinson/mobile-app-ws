@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
+
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -88,11 +89,12 @@ public class UserServiceImpl implements UserService {
 
         // check if user already exists
         if (userRepo.findByEmail(user.getEmail()) != null) {
-            throw new RuntimeException("User with email " + user.getEmail().toUpperCase() + " already exists");
+            throw new UserServiceException("User with email " + user.getEmail().toUpperCase() + " already exists");
         }
 
         for (int i = 0; i < user.getAddresses().size(); i++) {
             AddressDTO address = user.getAddresses().get(i);
+            address.setUserDetails(user);
             address.setAddressId(utils.generateAddressId(30));
             // set address back to user dto
             user.getAddresses().set(i, address);
@@ -105,6 +107,8 @@ public class UserServiceImpl implements UserService {
 
         userEntity.setUserId(utils.generateUserId(30));
         userEntity.setEncryptedPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+
+        // User is saved to DB
         UserEntity storedUserDetails = userRepo.save(userEntity);
 
         UserDTO returnValue;

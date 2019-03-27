@@ -1,6 +1,5 @@
 package com.myles.app.ws.entity;
 
-import com.myles.app.ws.dto.UserDTO;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
